@@ -1,0 +1,104 @@
+﻿<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<assembly xmlns="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0" xmlns:asmv3="urn:schemas-microsoft-com:asm.v3">
+    <assemblyIdentity name="Argentum-Online" processorArchitecture="X86" type="win32" version="1.2.0.4" />
+    <trustInfo xmlns="urn:schemas-microsoft-com:asm.v3">
+        <security>
+            <requestedPrivileges>
+                <requestedExecutionLevel level="requireAdministrator" uiAccess="false"/>
+            </requestedPrivileges>
+        </security>
+    </trustInfo> 
+    <file name="Aurora.Engine.dll">
+        <typelib tlbid="{F9712584-0257-4F93-9895-43F4BF05DC00}" version="2.0" flags="hasdiskimage" helpdir="" />
+        <comClass clsid="{ABBAE0F7-F07B-4B11-9268-2FFF8C5B1822}" tlbid="{F9712584-0257-4F93-9895-43F4BF05DC00}" progid="Audio_Emitter.Audio_Emitter.1" threadingModel="apartment">
+            <progid>Audio_Emitter.Audio_Emitter</progid>
+        </comClass>
+        <comClass clsid="{BE1689D8-95D1-4510-B5EE-71A236335B48}" tlbid="{F9712584-0257-4F93-9895-43F4BF05DC00}" progid="Audio_Sound.Audio_Sound.1" threadingModel="apartment">
+            <progid>Audio_Sound.Audio_Sound</progid>
+        </comClass>
+        <comClass clsid="{A9F6B270-0BA3-4B32-A60F-5B7225415D33}" tlbid="{F9712584-0257-4F93-9895-43F4BF05DC00}" progid="Audio_Service.Audio_Service.1" threadingModel="apartment">
+            <progid>Audio_Service.Audio_Service</progid>
+        </comClass>
+        <comClass clsid="{AD08ECDD-D7B4-4EFB-98CE-CABDF9407FF2}" tlbid="{F9712584-0257-4F93-9895-43F4BF05DC00}" progid="Memory_Chunk.Memory_Chunk.1" threadingModel="apartment">
+            <progid>Memory_Chunk.Memory_Chunk</progid>
+        </comClass>
+        <comClass clsid="{767D45C2-C943-11EE-ADEA-1418C3A8EDB8}" tlbid="{F9712584-0257-4F93-9895-43F4BF05DC00}" progid="BinaryReader.BinaryReader.1" threadingModel="apartment">
+            <progid>BinaryReader.BinaryReader</progid>
+        </comClass>
+        <comClass clsid="{31D38D93-88C2-495C-AA2E-9F840C2170E2}" tlbid="{F9712584-0257-4F93-9895-43F4BF05DC00}" progid="Content_Service.Content_Service.1" threadingModel="apartment">
+            <progid>Content_Service.Content_Service</progid>
+        </comClass>
+        <comClass clsid="{C390EC16-1CFF-11EE-ADCD-1418C3A8EDB8}" tlbid="{F9712584-0257-4F93-9895-43F4BF05DC00}" progid="Graphic_Font.Graphic_Font.1" threadingModel="apartment">
+            <progid>Graphic_Font.Graphic_Font</progid>
+        </comClass>
+        <comClass clsid="{5918B7A3-6578-4007-A34C-9636BD705F80}" tlbid="{F9712584-0257-4F93-9895-43F4BF05DC00}" progid="Graphic_Texture.Graphic_Texture.1" threadingModel="apartment">
+            <progid>Graphic_Texture.Graphic_Texture</progid>
+        </comClass>
+        <comClass clsid="{3015D5E9-DEAB-41F7-8810-E963C69BADF9}" tlbid="{F9712584-0257-4F93-9895-43F4BF05DC00}" progid="Graphic_Material.Graphic_Material.1" threadingModel="apartment">
+            <progid>Graphic_Material.Graphic_Material</progid>
+        </comClass>
+        <comClass clsid="{790311CB-EE0C-47F9-A32A-F64205CA6398}" tlbid="{F9712584-0257-4F93-9895-43F4BF05DC00}" progid="Graphic_Pipeline.Graphic_Pipeline.1" threadingModel="apartment">
+            <progid>Graphic_Pipeline.Graphic_Pipeline</progid>
+        </comClass>
+        <comClass clsid="{34DB804E-6C56-11EE-B962-0242AC120002}" tlbid="{F9712584-0257-4F93-9895-43F4BF05DC00}" progid="Graphic_Shader.Graphic_Shader.1" threadingModel="apartment">
+            <progid>Graphic_Shader.Graphic_Shader</progid>
+        </comClass>
+        <comClass clsid="{88FED143-28C7-11EE-ADCE-1418C3A8EDB8}" tlbid="{F9712584-0257-4F93-9895-43F4BF05DC00}" progid="Partitioner.Partitioner.1" threadingModel="apartment">
+            <progid>Partitioner.Partitioner</progid>
+        </comClass>
+        <comClass clsid="{224196A2-5298-11EE-ADD5-1418C3A8EDB8}" tlbid="{F9712584-0257-4F93-9895-43F4BF05DC00}" progid="Utility.Utility.1" threadingModel="apartment">
+            <progid>Utility.Utility</progid>
+        </comClass>
+        <comClass clsid="{8AAA199E-C943-11EE-ADEA-1418C3A8EDB8}" tlbid="{F9712584-0257-4F93-9895-43F4BF05DC00}" progid="BinaryWriter.BinaryWriter.1" threadingModel="apartment">
+            <progid>BinaryWriter.BinaryWriter</progid>
+        </comClass>
+        <comClass clsid="{84F49507-6F50-11EE-ADD5-1418C3A8EDB8}" tlbid="{F9712584-0257-4F93-9895-43F4BF05DC00}" progid="TOMLArray.TOMLArray.1" threadingModel="apartment">
+            <progid>TOMLArray.TOMLArray</progid>
+        </comClass>
+        <comClass clsid="{738C7F87-6F55-11EE-ADD5-1418C3A8EDB8}" tlbid="{F9712584-0257-4F93-9895-43F4BF05DC00}" progid="TOMLSection.TOMLSection.1" threadingModel="apartment">
+            <progid>TOMLSection.TOMLSection</progid>
+        </comClass>
+        <comClass clsid="{E88B2085-6F62-11EE-ADD5-1418C3A8EDB8}" tlbid="{F9712584-0257-4F93-9895-43F4BF05DC00}" progid="TOMLParser.TOMLParser.1" threadingModel="apartment">
+            <progid>TOMLParser.TOMLParser</progid>
+        </comClass>
+        <comClass clsid="{7F01B9AB-EC2C-4986-9E94-BC896CE27B56}" tlbid="{F9712584-0257-4F93-9895-43F4BF05DC00}" progid="Graphic_Camera.Graphic_Camera.1" threadingModel="apartment">
+            <progid>Graphic_Camera.Graphic_Camera</progid>
+        </comClass>
+        <comClass clsid="{42407F72-E795-40E0-B6D6-06C949932CD7}" tlbid="{F9712584-0257-4F93-9895-43F4BF05DC00}" progid="Graphic_Renderer.Graphic_Renderer.1" threadingModel="apartment">
+            <progid>Graphic_Renderer.Graphic_Renderer</progid>
+        </comClass>
+        <comClass clsid="{DC1BD4B9-B5AD-45B3-AFDF-97631A4FA144}" tlbid="{F9712584-0257-4F93-9895-43F4BF05DC00}" progid="Graphic_Service.Graphic_Service.1" threadingModel="apartment">
+            <progid>Graphic_Service.Graphic_Service</progid>
+        </comClass>
+        <comClass clsid="{39C1354D-C94C-11EE-ADEA-1418C3A8EDB7}" tlbid="{F9712584-0257-4F93-9895-43F4BF05DC00}" progid="Network_Protocol.Network_Protocol.1" threadingModel="apartment">
+            <progid>Network_Protocol.Network_Protocol</progid>
+        </comClass>
+        <comClass clsid="{5D181B42-C941-11EE-ADEA-1418C3A8EDB8}" tlbid="{F9712584-0257-4F93-9895-43F4BF05DC00}" progid="Network_Client.Network_Client.1" threadingModel="apartment">
+            <progid>Network_Client.Network_Client</progid>
+        </comClass>
+        <comClass clsid="{7657C303-C941-11EE-ADEA-1418C3A8EDB8}" tlbid="{F9712584-0257-4F93-9895-43F4BF05DC00}" progid="Network_Server.Network_Server.1" threadingModel="apartment">
+            <progid>Network_Server.Network_Server</progid>
+        </comClass>
+        <comClass clsid="{1998E627-C94A-11EE-ADEA-1418C3A8EDB8}" tlbid="{F9712584-0257-4F93-9895-43F4BF05DC00}" progid="Network_Service.Network_Service.1" threadingModel="apartment">
+            <progid>Network_Service.Network_Service</progid>
+        </comClass>
+        <comClass clsid="{A299E56F-712F-11EE-ADD5-1418C3A8EDB8}" tlbid="{F9712584-0257-4F93-9895-43F4BF05DC00}" progid="Platform_Service.Platform_Service.1" threadingModel="apartment">
+            <progid>Platform_Service.Platform_Service</progid>
+        </comClass>
+        <comClass clsid="{6CD06485-7B50-11EE-ADD5-1418C3A8EDB8}" tlbid="{F9712584-0257-4F93-9895-43F4BF05DC00}" progid="Window.Window.1" threadingModel="apartment">
+            <progid>Window.Window</progid>
+        </comClass>
+        <comClass clsid="{9D4A773A-7A81-11EE-ADD5-1418C3A8EDB8}" tlbid="{F9712584-0257-4F93-9895-43F4BF05DC00}" progid="Sciter_Service.Sciter_Service.1" threadingModel="apartment">
+            <progid>Sciter_Service.Sciter_Service</progid>
+        </comClass>
+        <comClass clsid="{A6857177-F1DB-41EF-8148-C6EB05A627CC}" tlbid="{F9712584-0257-4F93-9895-43F4BF05DC00}" progid="Kernel.Kernel.1" threadingModel="apartment">
+            <progid>Kernel.Kernel</progid>
+        </comClass>
+    </file>
+    <file name="Aurora.Collision.dll">
+        <typelib tlbid="{6D1E682C-CCFF-11EE-ADEF-1418C3A8EDB8}" version="1.0" flags="hasdiskimage" helpdir="" />
+        <comClass clsid="{68CEDDA0-CCFF-11EE-ADEF-1418C3A8EDB8}" tlbid="{6D1E682C-CCFF-11EE-ADEF-1418C3A8EDB8}" progid="Grid.Grid.1" threadingModel="apartment">
+            <progid>Grid.Grid</progid>
+        </comClass>
+    </file>
+</assembly>

@@ -1,0 +1,124 @@
+trigger:
+  - development
+  - feature/*
+  - release/*
+
+pr:
+  - master
+  - development
+  
+pool:
+  name: Default
+  demands:
+  - AO-SERVER-TYPE -equals BUILD-SERVER
+  - ram -equals 32G
+
+variables:
+- name: OutputArtifactName
+  value: ao-client-vb6_$(Build.SourceBranchName).zip
+- name: SrcOutputArtifactName
+  value: ao-client-vb6_$(Build.SourceBranchName)_src.zip
+
+steps:
+
+  - task: ArchiveFiles@2
+    displayName: 'Compressing Source Folder'
+    inputs:
+      rootFolderOrFile: '$(Build.SourcesDirectory)'
+      includeRootFolder: true
+      archiveType: 'zip'
+      archiveFile: '$(Build.ArtifactStagingDirectory)/output_src/$(SrcOutputArtifactName)'
+      replaceExistingArchive: true
+
+  - task: DownloadBuildArtifacts@1
+    inputs:
+      buildType: 'specific'
+      project: '03b56196-b397-47a0-9253-ae3de5947f84'
+      pipeline: '19'
+      buildVersionToDownload: 'latest'
+      downloadType: 'single'
+      artifactName: 'vb6wrapper'
+      downloadPath: '$(System.ArtifactsDirectory)\download'
+  
+  - task: ExtractFiles@1
+    inputs:
+      archiveFilePatterns: '$(System.ArtifactsDirectory)\download\vb6wrapper\VB6Wrapper.zip'
+      destinationFolder: '$(System.ArtifactsDirectory)\tools\'
+      cleanDestinationFolder: true
+      overwriteExistingFiles: false
+
+  - script: 'call regsvr32 /s "$(Build.SourcesDirectory)\Aurora.Engine.dll"'
+    displayName: 'Register Aurora.Engine.dll'
+    workingDirectory:  '$(Build.SourcesDirectory)'
+    failOnStderr: true
+  
+  - script: 'dotnet $(System.ArtifactsDirectory)\tools\vb6wrapper.dll -p  "$(Build.SourcesDirectory)\$(AOProjectFile)" -o "$(Build.SourcesDirectory)\$(AOOutputExecutableFileName)"'
+    displayName: 'Build Argentum Online Client'
+    workingDirectory:  '$(Build.SourcesDirectory)'
+    failOnStderr: false
+
+  - task: CopyFiles@2
+    displayName: 'Copying required files'
+    #condition: and(in(variables['build.sourceBranch'], 'refs/heads/master', 'refs/heads/development'), succeeded())
+    inputs:
+      SourceFolder: '$(Build.SourcesDirectory)'
+      Contents: |
+        $(Build.SourcesDirectory)\*.dll
+        $(Build.SourcesDirectory)\*.ocx
+        $(Build.SourcesDirectory)\LICENSE
+        $(Build.SourcesDirectory)\$(AOOutputExecutableFileName)
+        $(Build.SourcesDirectory)\$(AOOutputExecutableFileName).manifest
+      TargetFolder: '$(Build.SourcesDirectory)\build'
+
+  - task: CopyFiles@2
+    displayName: 'Copying Pipeline files'
+    #condition: and(in(variables['build.sourceBranch'], 'refs/heads/master', 'refs/heads/development'), succeeded())
+    inputs:
+      SourceFolder: '$(Build.SourcesDirectory)\Resources\Pipeline'
+      Contents: |
+        $(Build.SourcesDirectory)\Resources\Pipeline\*
+      TargetFolder: '$(Build.SourcesDirectory)\build\Resources\Pipeline'
+
+  - task: CopyFiles@2
+    displayName: 'Copying Font files'
+    #condition: and(in(variables['build.sourceBranch'], 'refs/heads/master', 'refs/heads/development'), succeeded())
+    inputs:
+      SourceFolder: '$(Build.SourcesDirectory)\Resources\Font'
+      Contents: |
+        $(Build.SourcesDirectory)\Resources\Font\*
+      TargetFolder: '$(Build.SourcesDirectory)\build\Resources\Font'
+
+  - task: CopyFiles@2
+    displayName: 'Copying EXTRA files (cursors and others)'
+    #condition: and(in(variables['build.sourceBranch'], 'refs/heads/master', 'refs/heads/development'), succeeded())
+    inputs:
+      SourceFolder: '$(Build.SourcesDirectory)\EXTRAS'
+      Contents: |
+        $(Build.SourcesDirectory)\EXTRAS\*
+      TargetFolder: '$(Build.SourcesDirectory)\build\EXTRAS'
+
+  - task: ArchiveFiles@2
+    displayName: 'Compressing artifacts'
+    #condition: and(in(variables['build.sourceBranch'], 'refs/heads/master', 'refs/heads/development'), succeeded())
+    inputs:
+      rootFolderOrFile: '$(Build.SourcesDirectory)\build\'
+      includeRootFolder: true
+      archiveType: 'zip'
+      archiveFile: '$(Build.ArtifactStagingDirectory)/output/$(OutputArtifactName)'
+      replaceExistingArchive: true
+      
+  - task: PublishBuildArtifacts@1
+    displayName: 'Publishing Artifacts'
+    #condition: and(in(variables['build.sourceBranch'], 'refs/heads/master', 'refs/heads/development'), succeeded())
+    inputs:
+      PathtoPublish: '$(Build.ArtifactStagingDirectory)/output/'
+      ArtifactName: '$(OutputArtifactName)'
+      publishLocation: 'Container'
+
+  - task: PublishBuildArtifacts@1
+    displayName: 'Publishing Src Artifacts'
+    #condition: and(in(variables['build.sourceBranch'], 'refs/heads/master', 'refs/heads/development'), succeeded())
+    inputs:
+      PathtoPublish: '$(Build.ArtifactStagingDirectory)/output_src/'
+      ArtifactName: '$(SrcOutputArtifactName)'
+      publishLocation: 'Container'

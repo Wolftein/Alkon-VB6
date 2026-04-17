@@ -1,0 +1,425 @@
+Attribute VB_Name = "SecurityIp"
+'Argentum Online 0.14.0
+'Copyright (C) 2002 Márquez Pablo Ignacio
+'
+'This program is free software; you can redistribute it and/or modify
+'it under the terms of the Affero General Public License;
+'either version 1 of the License, or any later version.
+'
+'This program is distributed in the hope that it will be useful,
+'but WITHOUT ANY WARRANTY; without even the implied warranty of
+'MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+'Affero General Public License for more details.
+'
+'You should have received a copy of the Affero General Public License
+'along with this program; if not, you can find it at http://www.affero.org/oagpl.html
+'
+'Argentum Online is based on Baronsoft's VB6 Online RPG
+'You can contact the original creator of ORE at aaron@baronsoft.com
+'for more information about ORE please visit http://www.baronsoft.com/
+'
+'
+'You can contact me at:
+'morgolock@speedy.com.ar
+'www.geocities.com/gmorgolock
+'Calle 3 número 983 piso 7 dto A
+'La Plata - Pcia, Buenos Aires - Republica Argentina
+'Código Postal 1900
+'Pablo Ignacio Márquez
+
+
+'**************************************************************
+' General_IpSecurity.Bas - Maneja la seguridad de las IPs
+'
+' Escrito y diseñado por DuNga (ltourrilhes@gmail.com)
+'**************************************************************
+Option Explicit
+
+'*************************************************  *************
+' General_IpSecurity.Bas - Maneja la seguridad de las IPs
+'
+' Escrito y diseñado por DuNga (ltourrilhes@gmail.com)
+'*************************************************  *************
+
+Private IpTables()      As Long 'USAMOS 2 LONGS: UNO DE LA IP, SEGUIDO DE UNO DE LA INFO
+Private EntrysCounter   As Long
+Private MaxValue        As Long
+Private Multiplicado    As Long 'Cuantas veces multiplike el EntrysCounter para que me entren?
+Private Const IntervaloEntreConexiones As Long = 3000
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+'Declaraciones para maximas conexiones por usuario
+'Agregado por EL OSO
+Private MaxConTables()      As Long
+Private MaxConTablesEntry   As Long     'puntero a la ultima insertada
+
+Private Const LIMITECONEXIONESxIP As Long = 20
+
+Private Enum e_SecurityIpTabla
+    IP_INTERVALOS = 1
+    IP_LIMITECONEXIONES = 2
+End Enum
+
+Public Sub InitIpTables(ByVal OptCountersValue As Long)
+'*************************************************  *************
+'Author: Lucio N. Tourrilhes (DuNga)
+'Last Modify Date: EL OSO 21/01/06. Soporte para MaxConTables
+'
+'*************************************************  *************
+On Error GoTo ErrHandler
+  
+    EntrysCounter = OptCountersValue
+    Multiplicado = 1
+
+    ReDim IpTables(EntrysCounter * 2 - 1) As Long
+    MaxValue = 0
+
+    ReDim MaxConTables(Declaraciones.MaxUsers * 2 - 1) As Long
+    MaxConTablesEntry = 0
+
+  
+  Exit Sub
+  
+ErrHandler:
+  Call LogError("Error" & Err.Number & "(" & Err.Description & ") en Sub InitIpTables de SecurityIp.bas")
+End Sub
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+''''''''''''''''''''''FUNCIONES PARA INTERVALOS'''''''''''''''''''''''''''''''''
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+Public Sub IpTableSecurityCleanIpCount()
+'*************************************************  *************
+'Author: Lucio N. Tourrilhes (DuNga)
+'Last Modify Date: Unknow
+'
+'*************************************************  *************
+    'Las borro todas cada 1 hora, asi se "renuevan"
+On Error GoTo ErrHandler
+  
+    ReDim MaxConTables(Declaraciones.MaxUsers * 2 - 1) As Long
+    MaxConTablesEntry = 0
+
+  
+  Exit Sub
+  
+ErrHandler:
+  Call LogError("Error" & Err.Number & "(" & Err.Description & ") en Sub IpTableSecurityCleanIpCount de SecurityIp.bas")
+End Sub
+
+
+Public Sub IpTableSecurityCleanIpTime()
+'*************************************************  *************
+'Author: Lucio N. Tourrilhes (DuNga)
+'Last Modify Date: Unknow
+'
+'*************************************************  *************
+    'Las borro todas cada 1 hora, asi se "renuevan"
+On Error GoTo ErrHandler
+  
+    EntrysCounter = EntrysCounter \ Multiplicado
+    Multiplicado = 1
+    ReDim IpTables(EntrysCounter * 2 - 1) As Long
+    MaxValue = 0
+  
+  Exit Sub
+  
+ErrHandler:
+  Call LogError("Error" & Err.Number & "(" & Err.Description & ") en Sub IpTableSecurityCleanIpTime de SecurityIp.bas")
+End Sub
+
+Public Function IpSecurityAceptarNuevaConexion(ByVal IP As Long) As Boolean
+'*************************************************  *************
+'Author: Lucio N. Tourrilhes (DuNga)
+'Last Modify Date: Unknow
+'
+'*************************************************  *************
+On Error GoTo ErrHandler
+  
+    Dim IpTableIndex As Long
+    Dim tmpTime As Long
+
+    IpTableIndex = FindTableIp(IP, IP_INTERVALOS)
+    
+    tmpTime = GetTickCount()
+    
+    If IpTableIndex >= 0 Then
+        If IpTables(IpTableIndex + 1) + IntervaloEntreConexiones <= tmpTime Then    'No está saturando de connects?
+            IpTables(IpTableIndex + 1) = tmpTime
+            IpSecurityAceptarNuevaConexion = True
+            Debug.Print "CONEXION ACEPTADA"
+            Exit Function
+        Else
+            IpSecurityAceptarNuevaConexion = False
+
+            Debug.Print "CONEXION NO ACEPTADA"
+
+            Exit Function
+        End If
+    Else
+        IpTableIndex = Not IpTableIndex
+        AddNewIpIntervalo IP, IpTableIndex
+        IpTables(IpTableIndex + 1) = tmpTime
+        IpSecurityAceptarNuevaConexion = True
+        Exit Function
+    End If
+
+  
+  Exit Function
+  
+ErrHandler:
+  Call LogError("Error" & Err.Number & "(" & Err.Description & ") en Function IpSecurityAceptarNuevaConexion de SecurityIp.bas")
+End Function
+
+
+Private Sub AddNewIpIntervalo(ByVal IP As Long, ByVal Index As Long)
+'*************************************************  *************
+'Author: Lucio N. Tourrilhes (DuNga)
+'Last Modify Date: Unknow
+'
+'*************************************************  *************
+    '2) Pruebo si hay espacio, sino agrando la lista
+On Error GoTo ErrHandler
+  
+    If MaxValue + 1 > EntrysCounter Then
+        EntrysCounter = EntrysCounter \ Multiplicado
+        Multiplicado = Multiplicado + 1
+        EntrysCounter = EntrysCounter * Multiplicado
+        
+        ReDim Preserve IpTables(EntrysCounter * 2 - 1) As Long
+    End If
+    
+    '4) Corro todo el array para arriba
+    Call CopyMemory(IpTables(Index + 2), IpTables(Index), (MaxValue - Index \ 2) * 8)   '*4 (peso del long) * 2(cantidad de elementos por c/u)
+    IpTables(Index) = IP
+    
+    '3) Subo el indicador de el maximo valor almacenado y listo :)
+    MaxValue = MaxValue + 1
+  
+  Exit Sub
+  
+ErrHandler:
+  Call LogError("Error" & Err.Number & "(" & Err.Description & ") en Sub AddNewIpIntervalo de SecurityIp.bas")
+End Sub
+
+' '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' ''''''''''''''''''''FUNCIONES PARA LIMITES X IP''''''''''''''''''''''''''''''''
+' '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+Public Function IPSecuritySuperaLimiteConexiones(ByVal IP As Long) As Boolean
+On Error GoTo ErrHandler
+  
+Dim IpTableIndex As Long
+
+    IpTableIndex = FindTableIp(IP, IP_LIMITECONEXIONES)
+    
+    If IpTableIndex >= 0 Then
+        
+        If MaxConTables(IpTableIndex + 1) < LIMITECONEXIONESxIP Then
+            'TODO: Nightw - Comenté esto para ver qué tal responde
+            'LogIP ("Agregamos conexion a " & GetAscIP(ip) & " iptableindex=" & IpTableIndex & ". Conexiones: " & MaxConTables(IpTableIndex + 1))
+            'TODO: Nightw - Comenté esto para ver qué tal responde
+            'WOLFTEIN
+    'Debug.Print "suma conexion a " & GetAscIP(ip) & " total " & MaxConTables(IpTableIndex + 1) + 1
+            MaxConTables(IpTableIndex + 1) = MaxConTables(IpTableIndex + 1) + 1
+            IPSecuritySuperaLimiteConexiones = False
+        Else
+            'TODO: Nightw - Comenté esto para ver qué tal responde
+            'LogIP ("rechazamos conexion de " & GetAscIP(ip) & " iptableindex=" & IpTableIndex & ". Conexiones: " & MaxConTables(IpTableIndex + 1))
+            'WOLFTEIN
+    'Debug.Print "rechaza conexion a " & GetAscIP(ip)
+            IPSecuritySuperaLimiteConexiones = True
+        End If
+    Else
+        IPSecuritySuperaLimiteConexiones = False
+        If MaxConTablesEntry < Declaraciones.MaxUsers Then  'si hay espacio..
+            IpTableIndex = Not IpTableIndex
+            AddNewIpLimiteConexiones IP, IpTableIndex    'iptableindex es donde lo agrego
+            MaxConTables(IpTableIndex + 1) = 1
+        Else
+            'TODO: Nightw - Comenté esto para ver qué tal responde
+            'Call LogCriticEvent("SecurityIP.IPSecuritySuperaLimiteConexiones: Se supero la disponibilidad de slots.")
+        End If
+    End If
+
+  
+  Exit Function
+  
+ErrHandler:
+  Call LogError("Error" & Err.Number & "(" & Err.Description & ") en Function IPSecuritySuperaLimiteConexiones de SecurityIp.bas")
+End Function
+
+Private Sub AddNewIpLimiteConexiones(ByVal IP As Long, ByVal Index As Long)
+'*************************************************  *************
+'Author: (EL OSO)
+'Last Modify Date: 16/2/2006
+'05/21/10 - Pato: Saco el uso de buffer auxiliar
+'*************************************************  *************
+    'Debug.Print "agrega conexion a " & ip
+    'Debug.Print "(Declaraciones.MaxUsers - Index) = " & (Declaraciones.MaxUsers - Index)
+    '4) Corro todo el array para arriba
+On Error GoTo ErrHandler
+    Call CopyMemory(MaxConTables(Index + 2), MaxConTables(Index), (MaxConTablesEntry - Index \ 2) * 8)    '*4 (peso del long) * 2(cantidad de elementos por c/u)
+
+  
+    MaxConTables(Index) = IP
+
+    '3) Subo el indicador de el maximo valor almacenado y listo :)
+    MaxConTablesEntry = MaxConTablesEntry + 1
+  
+  Exit Sub
+  
+ErrHandler:
+  Call LogError("Error" & Err.Number & "(" & Err.Description & ") en Sub AddNewIpLimiteConexiones de SecurityIp.bas")
+End Sub
+
+Public Sub IpRestarConexion(ByVal IP As Long)
+'***************************************************
+'Author: Unknown
+'Last Modification: -
+'
+'***************************************************
+
+On Error GoTo ErrHandler
+
+Dim Key As Long
+    'Debug.Print "resta conexion a " & ip
+    
+    Key = FindTableIp(IP, IP_LIMITECONEXIONES)
+    
+    If Key >= 0 Then
+        If MaxConTables(Key + 1) > 0 Then
+            MaxConTables(Key + 1) = MaxConTables(Key + 1) - 1
+        End If
+        'Call LogIP("restamos conexion a " & ip & " key=" & key & ". Conexiones: " & MaxConTables(key + 1))
+        'Comento esto, sino se nos va el HD en logs, jaja
+        If MaxConTables(Key + 1) <= 0 Then
+            'la limpiamos
+            MaxConTablesEntry = MaxConTablesEntry - 1
+            
+            If Key + 2 < UBound(MaxConTables) Then
+                Call CopyMemory(MaxConTables(Key), MaxConTables(Key + 2), (MaxConTablesEntry - (Key \ 2)) * 8)
+            End If
+        End If
+    Else 'Key < 0
+        'TODO: Nightw - Comenté esto para ver qué tal responde
+        'Call LogIP("restamos conexion a " & GetAscIP(ip) & " key=" & Key & ". NEGATIVO!!")
+        'LogCriticEvent "SecurityIp.IpRestarconexion obtuvo un valor negativo en key"
+    End If
+    
+    Exit Sub
+
+ErrHandler:
+    'WOLFTEIN
+    'Call LogError("Error en IpRestarConexion. Error: " & Err.Number & " - " & Err.Description & ". Ip: " & GetAscIP(ip) & " Key:" & Key)
+End Sub
+
+Public Sub IpCleanConnectionInterval(ByVal IP As Long)
+On Error GoTo ErrHandler:
+    Dim Key As Long
+    
+    Key = FindTableIp(IP, IP_INTERVALOS)
+    If Key >= 0 Then
+        If IpTables(Key + 1) > 0 Then
+            IpTables(Key + 1) = 0
+        End If
+    End If
+
+    Exit Sub
+    
+ErrHandler:
+    'WOLFTEIN
+    'Call LogError("Error en IpCleanConnectionInterval. Error: " & Err.Number & " - " & Err.Description & ". Ip: " & GetAscIP(ip) & " Key:" & Key)
+End Sub
+
+
+
+' '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' ''''''''''''''''''''''''FUNCIONES GENERALES''''''''''''''''''''''''''''''''''''
+' '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+
+Private Function FindTableIp(ByVal IP As Long, ByVal Tabla As e_SecurityIpTabla) As Long
+'*************************************************  *************
+'Author: Lucio N. Tourrilhes (DuNga)
+'Last Modify Date: Unknow
+'Modified by Juan Martín Sotuyo Dodero (Maraxus) to use Binary Insertion
+'*************************************************  *************
+On Error GoTo ErrHandler
+  
+Dim First As Long
+Dim Last As Long
+Dim Middle As Long
+    
+    Select Case Tabla
+        Case e_SecurityIpTabla.IP_INTERVALOS
+            First = 0
+            Last = MaxValue - 1
+            Do While First <= Last
+                Middle = (First + Last) \ 2
+                
+                If (IpTables(Middle * 2) < IP) Then
+                    First = Middle + 1
+                ElseIf (IpTables(Middle * 2) > IP) Then
+                    Last = Middle - 1
+                Else
+                    FindTableIp = Middle * 2
+                    Exit Function
+                End If
+            Loop
+            FindTableIp = Not (First * 2)
+        
+        Case e_SecurityIpTabla.IP_LIMITECONEXIONES
+            
+            First = 0
+            Last = MaxConTablesEntry - 1
+
+            Do While First <= Last
+                Middle = (First + Last) \ 2
+
+                If MaxConTables(Middle * 2) < IP Then
+                    First = Middle + 1
+                ElseIf MaxConTables(Middle * 2) > IP Then
+                    Last = Middle - 1
+                Else
+                    FindTableIp = Middle * 2
+                    Exit Function
+                End If
+            Loop
+            FindTableIp = Not (First * 2)
+    End Select
+  
+  Exit Function
+  
+ErrHandler:
+  Call LogError("Error" & Err.Number & "(" & Err.Description & ") en Function FindTableIp de SecurityIp.bas")
+End Function
+
+Public Function DumpTables()
+'***************************************************
+'Author: Unknown
+'Last Modification: -
+'
+'***************************************************
+On Error GoTo ErrHandler
+  
+
+Dim I As Integer
+
+    For I = 0 To MaxConTablesEntry * 2 - 1 Step 2
+        'WOLFTEIN
+    'Call LogCriticEvent(GetAscIP(MaxConTables(I)) & " > " & MaxConTables(I + 1))
+    Next I
+
+  
+  Exit Function
+  
+ErrHandler:
+  Call LogError("Error" & Err.Number & "(" & Err.Description & ") en Function DumpTables de SecurityIp.bas")
+End Function

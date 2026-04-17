@@ -1,0 +1,101 @@
+trigger:
+  - development
+  - feature/*
+  - fix/*
+  - release/*
+
+pr:
+  - master
+  - development
+  
+pool: Default
+
+variables:
+- name: OutputArtifactName
+  value: ao-server-vb6_$(Build.SourceBranchName).zip
+- name: SrcOutputArtifactName
+  value: ao-server-vb6_$(Build.SourceBranchName)_src.zip
+
+steps:
+  - task: ArchiveFiles@2
+    displayName: 'Compressing artifacts'
+    condition: and(in(variables['build.sourceBranch'], 'refs/heads/master', 'refs/heads/development'), succeeded())
+    inputs:
+      rootFolderOrFile: '$(Build.SourcesDirectory)'
+      includeRootFolder: true
+      archiveType: 'zip'
+      archiveFile: '$(Build.ArtifactStagingDirectory)/output_src/$(SrcOutputArtifactName)'
+      replaceExistingArchive: true
+
+  - task: DownloadBuildArtifacts@1
+    inputs:
+      buildType: 'specific'
+      project: '03b56196-b397-47a0-9253-ae3de5947f84'
+      pipeline: '19'
+      buildVersionToDownload: 'latest'
+      downloadType: 'single'
+      artifactName: 'vb6wrapper'
+      downloadPath: '$(System.ArtifactsDirectory)\download'
+  
+  - task: ExtractFiles@1
+    inputs:
+      archiveFilePatterns: '$(System.ArtifactsDirectory)\download\vb6wrapper\VB6Wrapper.zip'
+      destinationFolder: '$(System.ArtifactsDirectory)\tools\'
+      cleanDestinationFolder: true
+      overwriteExistingFiles: false
+
+  - script: 'call regsvr32 /s "$(Build.SourcesDirectory)\Aurora.Collision.dll"'
+    displayName: 'Register Aurora.Collision.dll'
+    workingDirectory:  '$(Build.SourcesDirectory)'
+    failOnStderr: true
+
+  - script: 'call regsvr32 /s "$(Build.SourcesDirectory)\Aurora.Engine.dll"'
+    displayName: 'Register Aurora.Engine.dll'
+    workingDirectory:  '$(Build.SourcesDirectory)'
+    failOnStderr: true
+
+  - script: 'dotnet $(System.ArtifactsDirectory)\tools\vb6wrapper.dll -p  "$(Build.SourcesDirectory)\$(AOServerProjectFile)" -o "$(Build.SourcesDirectory)\$(AOServerOutputExecutableFileName)" -e USE_MQ=1'
+    displayName: 'Build Argentum Online Server'
+    workingDirectory:  '$(Build.SourcesDirectory)'
+    failOnStderr: false
+
+  - task: CopyFiles@2
+    displayName: 'Copying required files'
+    condition: and(in(variables['build.sourceBranch'], 'refs/heads/master', 'refs/heads/development'), succeeded())
+    inputs:
+      SourceFolder: '$(Build.SourcesDirectory)'
+      Contents: |
+        $(Build.SourcesDirectory)\*.dll
+        $(Build.SourcesDirectory)\Server.ini.example
+        $(Build.SourcesDirectory)\docker-compose.yml
+        $(Build.SourcesDirectory)\$(AOServerOutputExecutableFileName)
+        $(Build.SourcesDirectory)\LICENSE
+        $(Build.SourcesDirectory)\SQL\**
+        $(Build.SourcesDirectory)\logo.jpg
+      TargetFolder: '$(Build.SourcesDirectory)\build'
+      
+  - task: ArchiveFiles@2
+    displayName: 'Compressing artifacts'
+    condition: and(in(variables['build.sourceBranch'], 'refs/heads/master', 'refs/heads/development'), succeeded())
+    inputs:
+      rootFolderOrFile: '$(Build.SourcesDirectory)\build\'
+      includeRootFolder: true
+      archiveType: 'zip'
+      archiveFile: '$(Build.ArtifactStagingDirectory)/output/$(OutputArtifactName)'
+      replaceExistingArchive: true
+      
+  - task: PublishBuildArtifacts@1
+    displayName: 'Publishing Artifacts'
+    condition: and(in(variables['build.sourceBranch'], 'refs/heads/master', 'refs/heads/development'), succeeded())
+    inputs:
+      PathtoPublish: '$(Build.ArtifactStagingDirectory)/output/'
+      ArtifactName: '$(OutputArtifactName)'
+      publishLocation: 'Container'
+
+  - task: PublishBuildArtifacts@1
+    displayName: 'Compressing Src Artifacts'
+    condition: and(in(variables['build.sourceBranch'], 'refs/heads/master', 'refs/heads/development'), succeeded())
+    inputs:
+      PathtoPublish: '$(Build.ArtifactStagingDirectory)/output_src/'
+      ArtifactName: '$(SrcOutputArtifactName)'
+      publishLocation: 'Container'

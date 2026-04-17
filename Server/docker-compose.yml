@@ -1,0 +1,52 @@
+version: "3"
+
+services:
+    queue:
+        container_name: ao-rabbitmq
+        image: rabbitmq:3-management-alpine
+        restart: always
+        ports:
+            - "6672:5672"
+            - "25672:15672"
+        networks: 
+            - backend
+    db:
+        container_name: ao-db
+        image: mariadb:10.3
+        restart: always
+        ports:
+            - "6432:5432"
+            - "3306:3306"
+        environment:
+            MYSQL_DATABASE: ao-db
+            MYSQL_USER: ao
+            MYSQL_PASSWORD: password
+            MYSQL_ROOT_PASSWORD: password
+            MYSQL_ROOT_HOST: "%"
+        volumes:
+            # The custom config file to be used by the container
+            - ./docker/configs/:/etc/mysql
+            
+            # Everything under ./docker/container should be ignored by git and never commited to the repo
+            - ./docker/container/mariadb_entrypoint:/docker-entrypoint-initdb.d/
+            - ./docker/container/mariadb/:/var/lib/mysql
+            - ./docker/container/mariadb_logs:/var/log/mysql
+            
+            # The .sql files will be automatically imported in alphabetical order by the container when created
+            # The DB name should be configured in the MYSQL_DATABASE environment variable
+            - ./SQL/01-dump_structure.sql:/docker-entrypoint-initdb.d/01-dump_structure.sql
+            - ./SQL/02-dump_procedures.sql:/docker-entrypoint-initdb.d/02-dump_procedures.sql
+            - ./SQL/03-dump_data.sql:/docker-entrypoint-initdb.d/03-dump_data.sql
+        networks: 
+            - backend
+    adminer:
+        container_name: ao-db-webadmin
+        image: adminer
+        restart: always
+        networks: 
+            - backend
+        ports:
+                - "8080:8080"
+networks:
+    backend:
+        driver: "bridge"
